@@ -125,7 +125,8 @@ Optional parsing hints:
 - provider (o2|lebara|vodafone …)
 
 **Response example**
-```{
+```
+{
 "id": 42,
 "sha256": "…",
 "status": "pending",
@@ -136,7 +137,8 @@ Optional parsing hints:
 "size_bytes": 123456,
 "contract_id": 7,
 "created_at": "2025-09-23T09:00:00Z"
-}```
+}
+```
 
 
 ---
