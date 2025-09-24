@@ -45,6 +45,7 @@ build/
 
 # Env files (local only)
 .env
+.env.docker
 .env.local
 .env.development.local
 .env.test.local
