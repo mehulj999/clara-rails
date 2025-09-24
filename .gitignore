@@ -14,20 +14,6 @@
 # Used by dotenv library to load environment variables
 # .env
 
-# Ignore Byebug command history file
-.byebug_history
-
-## Specific to RubyMotion
-.dat*
-.repl_history
-build/
-*.bridgesupport
-build-iPhoneOS/
-build-iPhoneSimulator/
-
-## Specific to RubyMotion (CocoaPods)
-# vendor/Pods/
-
 ## Documentation cache and generated files
 /.yardoc/
 /_yardoc/
