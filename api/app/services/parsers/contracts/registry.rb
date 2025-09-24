@@ -2,37 +2,46 @@
 module Parsers
   module Contracts
     class Registry
-      # Register providers here
-      PROVIDER_CLASSES = {
-        "o2"       => "Parsers::Contracts::Providers::O2MobileParser",
-        "lebara"   => "Parsers::Contracts::Providers::LebaraMobileParser",
-        "vodafone" => "Parsers::Contracts::Providers::VodafoneInternetParser",
+      # Map country -> array of provider classes
+      COUNTRY_PROVIDERS = {
+        "DE" => [
+          "Parsers::Contracts::Providers::DE::O2MobileParser",
+          "Parsers::Contracts::Providers::DE::LebaraMobileParser",
+          "Parsers::Contracts::Providers::DE::VodafoneInternetParser",
+        ],
+        "IN" => [
+          # Stubs you can add later
+          "Parsers::Contracts::Providers::IN::JioMobileParser",
+          "Parsers::Contracts::Providers::IN::AirtelMobileParser",
+        ]
       }.freeze
 
-      # Parse with hints or auto-detect
-      def self.parse(io_or_path, hints: {})
-        text = nil
+      # Optional aliases like "Germany" -> "DE"
+      COUNTRY_ALIAS = {
+        "GERMANY" => "DE", "DE" => "DE",
+        "INDIA"   => "IN", "IN" => "IN"
+      }.freeze
 
-        # 1) If provider hint present, try that first
-        if (prov = hints[:provider]&.to_s&.downcase)&.present?
-          klass_name = PROVIDER_CLASSES[prov]
-          if klass_name
-            parser = klass_name.constantize.new
-            text ||= parser.extract_text(io_or_path)
-            return { parser_name: parser.class.name.demodulize.underscore, attrs: parser.extract(text) } if parser.can_handle?(text)
-          end
+      def self.normalize_country(c)
+        return nil if c.blank?
+        COUNTRY_ALIAS[c.to_s.upcase] || c.to_s.upcase
+      end
+
+      def self.parse(io_or_path, hints: {})
+        # Resolve country precedence: hints -> document/contract (caller supplies) -> default
+        country = normalize_country(hints[:country]) || "DE"
+        providers = (COUNTRY_PROVIDERS[country] || []).map { _1.constantize.new }
+
+        # If provider hint exists, prioritize that one
+        if (prov = hints[:provider].to_s.downcase.presence)
+          candidates = providers.select { |p| p.class.name.demodulize.underscore.include?(prov) }
+          providers = (candidates + (providers - candidates)).uniq
         end
 
-        # 2) If subtype hint present, narrow candidate list (optional)
-        subtype = hints[:subtype]&.to_s
-
-        candidates = PROVIDER_CLASSES.values.map(&:constantize).map(&:new)
-        candidates.select! { |p| subtype == "mobile" ? p.respond_to?(:mobile?) && p.mobile? : true } if subtype
-
-        # 3) Auto-detect by can_handle?
-        text ||= candidates.first&.extract_text(io_or_path) || Parsers::Contracts::BaseContractParser.new.extract_text(io_or_path)
-        candidates.each do |parser|
-          return { parser_name: parser.class.name.demodulize.underscore, attrs: parser.extract(text) } if parser.can_handle?(text)
+        text = nil
+        providers.each do |parser|
+          text ||= parser.extract_text(io_or_path)
+          return { parser_name: parser.class.name.demodulize.underscore, attrs: parser.extract(text.merge_country_defaults(country)) } if parser.can_handle?(text)
         end
 
         nil

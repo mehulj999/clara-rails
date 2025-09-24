@@ -1,11 +1,9 @@
-
 # app/services/parsers/contracts/base_contract_parser.rb
 require "pdf/reader"
 
 module Parsers
   module Contracts
     class BaseContractParser < ::Parsers::Base
-      # Common helpers (DE date, euro, text extraction)
       def parse_date_de(str)
         return nil if str.nil?
         s = str.to_s.strip
@@ -28,6 +26,15 @@ module Parsers
         text = +""
         PDF::Reader.new(io_or_path).pages.each { |p| text << "\n" << (p.text || "") }
         text
+      end
+
+      # Helper to merge country defaults into the final attrs
+      def merge_defaults(attrs, country)
+        defaults = case country
+                   when "IN" then { currency: "INR" }
+                   else           { currency: "EUR" }
+                   end
+        defaults.merge(attrs){ |_k, v1, v2| v2 || v1 }
       end
     end
   end

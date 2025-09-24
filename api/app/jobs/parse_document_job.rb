@@ -5,6 +5,10 @@ class ParseDocumentJob < ApplicationJob
   def perform(document_id, hints = {})
     doc = Document.find(document_id)
 
+    # determine country: hints -> doc.country_code -> contract.country_code
+    country = (hints[:country].presence || doc.country_code || doc.contract&.country_code || "DE").upcase
+    hints = hints.merge(country: country)
+
     doc.file.open(tmpdir: Dir.tmpdir) do |file_io|
       res = DocumentParser.parse(file_io.path, hints: hints)
 
@@ -13,7 +17,9 @@ class ParseDocumentJob < ApplicationJob
           raise "Document not linked to a contract_id" if doc.contract_id.blank?
           contract = Contract.find(doc.contract_id)
 
-          # merge (fill blanks only)
+          # ensure country aligns
+          contract.update!(country_code: country) if contract.country_code != country
+
           merged = merge_contract_attrs(contract, res.attrs)
           contract.update!(merged)
 

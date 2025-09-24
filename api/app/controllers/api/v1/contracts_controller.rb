@@ -86,7 +86,8 @@ module Api
           :contract_type, :provider, :category, :plan_name, :contract_number, :customer_number,
           :msisdn, :start_date, :end_date, :min_term_months, :notice_period_days,
           :monthly_fee, :promo_monthly_fee, :promo_end_date, :currency,
-          :termination_email, :termination_address, :notes, :person_id
+          :termination_email, :termination_address, :notes, :person_id,
+          :country_code 
         )
       end
     end

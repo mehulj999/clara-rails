@@ -44,16 +44,18 @@ class Api::V1::DocumentsController < ApplicationController
       size_bytes: size_bytes,
       status: 'pending',
       uploaded_by: current_user,
-      contract_id: contract_id
+      contract_id: contract_id,
+      country_code: params[:country]&.upcase
     )
 
     doc.file.attach(file)
 
     hints = {
-      domain: params[:domain],      # "contract"
-      subtype: params[:subtype],    # "mobile" | "internet"
-      provider: params[:provider],  # "o2" | "lebara" | "vodafone"
-    }
+      domain:   params[:domain],   # "contract"
+      subtype:  params[:subtype],  # "mobile"|"internet"|...
+      provider: params[:provider], # "o2"|"lebara"|"vodafone"|...
+      country:  params[:country]   # "DE"|"IN"
+    }.compact
     ActiveRecord::Base.transaction do
       doc.save!
       # Step 4 will enqueue ParseDocumentJob here; for now we only persist.

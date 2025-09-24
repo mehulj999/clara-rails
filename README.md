@@ -11,6 +11,7 @@ A local-first app to upload contract PDFs, auto-parse key fields, and manage upc
 ## Scope
 
 Contracts (mobile/internet/gym/insurance).
+Reminders
 Statements can be added later with the same pattern.
 
 ---
@@ -22,6 +23,7 @@ Statements can be added later with the same pattern.
 - Country-aware parsing (DE/IN) with hints or auto-detection.
 - Link documents ↔ contracts; view parse status.
 - Contract CRUD scoped to the signed-in user via Person.
+- Reminders are setup to give remind the user for upcoming payments
 
 ---
 
@@ -29,6 +31,7 @@ Statements can be added later with the same pattern.
 
 ```
 User ──< Person ──< Contract ──< Document (Active Storage file)
+Contract ──< Reminder
 ```
 
 
@@ -60,7 +63,7 @@ User ──< Person ──< Contract ──< Document (Active Storage file)
 
 contract_type ∈ mobile | gym | insurance | internet (no STI usage).
 
-### documents
+### Documents
 
 | Column          | Description                                   |
 |:----------------|:----------------------------------------------|
@@ -69,7 +72,7 @@ contract_type ∈ mobile | gym | insurance | internet (no STI usage).
 | sha256          | Unique doc hash                               |
 | content_type    | MIME type                                     |
 | size_bytes      | File size                                     |
-| status          | parsing status (pending|parsed|failed)         |
+| status          | parsing status (pending|parsed|failed)        |
 | parser_name     | parser used                                   |
 | parsed_at       | When parsed                                   |
 | parse_error     | error message                                 |
@@ -77,6 +80,19 @@ contract_type ∈ mobile | gym | insurance | internet (no STI usage).
 | uploaded_by_id  | User ID (who uploaded)                        |
 | timestamps      | Created/updated                               |
 | file            | Attachment: Active Storage                    |
+
+
+### Reminders
+
+| Column          | Description                                   |
+|:----------------|:----------------------------------------------|
+| id              | Reminder ID                                   |
+| contract_id     | Linked contract ID                            |
+| title           | Title of reminder                             |
+| notes           | Description or additional notes               |
+| size_bytes      | File size                                     |
+| status          | (Pending|Completed|In progress)               |
+| timestamps      | Created/updated                               |
 
 ---
 
@@ -113,6 +129,16 @@ All routes are JWT protected and scoped to current_user.
 | GET    | /api/v1/documents            | List                       |
 | GET    | /api/v1/documents/:id        | Show                       |
 | POST   | /api/v1/documents            | Upload (multipart/formdata)|
+
+### Reminders
+
+| Method | Route                       | Note                |
+| ------ | --------------------------- | ------------------- |
+| GET    | /api/v1/reminders           | List                |
+| POST   | /api/v1/reminders           | Create              |
+| GET    | /api/v1/reminders/:id       | Show                |
+| PATCH  | /api/v1/reminders/:id       | Update              |
+| DELETE | /api/v1/reminders/:id       | Soft delete         |
 
 **Upload fields (multipart):**
 - file (required): the PDF

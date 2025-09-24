@@ -16,6 +16,7 @@ export default function NewContract() {
   const [contractType, setContractType] = useState<string>("mobile");
   const [provider, setProvider] = useState<string>("Telekom");
   const [currency, setCurrency] = useState<string>("EUR");
+  const [country, setCountry] = useState<"DE"|"IN">("DE");
 
   const [file, setFile] = useState<File | null>(null);
   const [err, setErr] = useState<string | null>(null);
@@ -32,6 +33,7 @@ export default function NewContract() {
           contract_type: contractType,
           provider,
           currency,
+          country_code: country,
           person_id: personId
         }
       };
@@ -81,6 +83,11 @@ export default function NewContract() {
 
         <label className="block text-sm">Provider</label>
         <input className="border p-2 w-full" value={provider} onChange={e=>setProvider(e.target.value)} />
+
+        <select value={country} onChange={e=>setCountry(e.target.value as "DE"|"IN")} className="border p-2 w-full">
+          <option value="DE">Germany (DE)</option>
+          <option value="IN">India (IN)</option>
+        </select>
 
         <label className="block text-sm">Currency</label>
         <input className="border p-2 w-full" value={currency} onChange={e=>setCurrency(e.target.value)} />
